@@ -168,7 +168,12 @@ where
         // blobparams
         let blob_excess_gas_and_price =
             header.excess_blob_gas.zip(blob_params).map(|(excess_blob_gas, params)| {
-                let blob_gasprice = params.calc_blob_fee(excess_blob_gas);
+                // Prevent overflow in blob fee calculation by capping excess blob gas at a
+                // reasonable maximum. This is a sanity check to prevent panics when calculating
+                // blob fees for invalid blocks with very large excess blob gas values.
+                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 1_000_000_000_000; // 1e12
+                let capped_excess = excess_blob_gas.min(MAX_REASONABLE_EXCESS_BLOB_GAS);
+                let blob_gasprice = params.calc_blob_fee(capped_excess);
                 BlobExcessGasAndPrice { excess_blob_gas, blob_gasprice }
             });
 
@@ -214,8 +219,13 @@ where
             .maybe_next_block_excess_blob_gas(blob_params)
             .or_else(|| (spec_id == SpecId::CANCUN).then_some(0))
             .map(|excess_blob_gas| {
+                // Prevent overflow in blob fee calculation by capping excess blob gas at a
+                // reasonable maximum. This is a sanity check to prevent panics when calculating
+                // blob fees for invalid blocks with very large excess blob gas values.
+                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 1_000_000_000_000; // 1e12
+                let capped_excess = excess_blob_gas.min(MAX_REASONABLE_EXCESS_BLOB_GAS);
                 let blob_gasprice =
-                    blob_params.unwrap_or_else(BlobParams::cancun).calc_blob_fee(excess_blob_gas);
+                    blob_params.unwrap_or_else(BlobParams::cancun).calc_blob_fee(capped_excess);
                 BlobExcessGasAndPrice { excess_blob_gas, blob_gasprice }
             });
 
@@ -314,7 +324,14 @@ where
         // blobparams
         let blob_excess_gas_and_price =
             payload.payload.excess_blob_gas().zip(blob_params).map(|(excess_blob_gas, params)| {
-                let blob_gasprice = params.calc_blob_fee(excess_blob_gas);
+                // Prevent overflow in blob fee calculation by capping excess blob gas at a
+                // reasonable maximum. This is a sanity check to prevent panics when calculating
+                // blob fees for invalid blocks with very large excess blob gas values.
+                // The maximum reasonable excess blob gas is much lower than u64::MAX.
+                // We use a conservative upper bound that's still far above any realistic value.
+                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 1_000_000_000_000; // 1e12
+                let capped_excess = excess_blob_gas.min(MAX_REASONABLE_EXCESS_BLOB_GAS);
+                let blob_gasprice = params.calc_blob_fee(capped_excess);
                 BlobExcessGasAndPrice { excess_blob_gas, blob_gasprice }
             });
 
