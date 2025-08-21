@@ -171,7 +171,9 @@ where
                 // Prevent overflow in blob fee calculation by capping excess blob gas at a
                 // reasonable maximum. This is a sanity check to prevent panics when calculating
                 // blob fees for invalid blocks with very large excess blob gas values.
-                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 1_000_000_000_000; // 1e12
+                // The cap is chosen to prevent overflow in fake_exponential calculation with
+                // Prague's BLOB_GASPRICE_UPDATE_FRACTION_PECTRA parameter.
+                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 250_000_000; // 250M
                 let capped_excess = excess_blob_gas.min(MAX_REASONABLE_EXCESS_BLOB_GAS);
                 let blob_gasprice = params.calc_blob_fee(capped_excess);
                 BlobExcessGasAndPrice { excess_blob_gas, blob_gasprice }
@@ -222,7 +224,9 @@ where
                 // Prevent overflow in blob fee calculation by capping excess blob gas at a
                 // reasonable maximum. This is a sanity check to prevent panics when calculating
                 // blob fees for invalid blocks with very large excess blob gas values.
-                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 1_000_000_000_000; // 1e12
+                // The cap is chosen to prevent overflow in fake_exponential calculation with
+                // Prague's BLOB_GASPRICE_UPDATE_FRACTION_PECTRA parameter.
+                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 250_000_000; // 250M
                 let capped_excess = excess_blob_gas.min(MAX_REASONABLE_EXCESS_BLOB_GAS);
                 let blob_gasprice =
                     blob_params.unwrap_or_else(BlobParams::cancun).calc_blob_fee(capped_excess);
@@ -327,9 +331,9 @@ where
                 // Prevent overflow in blob fee calculation by capping excess blob gas at a
                 // reasonable maximum. This is a sanity check to prevent panics when calculating
                 // blob fees for invalid blocks with very large excess blob gas values.
-                // The maximum reasonable excess blob gas is much lower than u64::MAX.
-                // We use a conservative upper bound that's still far above any realistic value.
-                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 1_000_000_000_000; // 1e12
+                // The cap is chosen to prevent overflow in fake_exponential calculation with
+                // Prague's BLOB_GASPRICE_UPDATE_FRACTION_PECTRA parameter.
+                const MAX_REASONABLE_EXCESS_BLOB_GAS: u64 = 250_000_000; // 250M
                 let capped_excess = excess_blob_gas.min(MAX_REASONABLE_EXCESS_BLOB_GAS);
                 let blob_gasprice = params.calc_blob_fee(capped_excess);
                 BlobExcessGasAndPrice { excess_blob_gas, blob_gasprice }
