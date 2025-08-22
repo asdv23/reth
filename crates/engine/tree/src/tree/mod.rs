@@ -2344,7 +2344,9 @@ where
                 self.latest_valid_hash_for_invalid_payload(parent_hash)?
             };
 
-        let status = PayloadStatusEnum::from(error);
+        // Apply EEST error mapping when creating the invalid status
+        let validation_error = Self::map_eest_validation_error(&error.to_string());
+        let status = PayloadStatusEnum::Invalid { validation_error };
         Ok(PayloadStatus::new(status, latest_valid_hash))
     }
 
