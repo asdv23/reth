@@ -2268,6 +2268,21 @@ where
         Ok(input)
     }
 
+    /// Maps validation errors to their expected EEST format.
+    ///
+    /// This is necessary because EEST expects specific error strings for certain validation
+    /// errors. For example, when a transaction's gas floor exceeds the gas limit (EIP-7623),
+    /// EEST expects "`INTRINSIC_GAS_TOO_LOW`" instead of "`INTRINSIC_GAS_BELOW_FLOOR_GAS_COST`".
+    fn map_eest_validation_error(error_str: &str) -> String {
+        // Check if the error contains the gas floor exceeds gas limit pattern
+        if error_str.contains("gas floor") && error_str.contains("exceeds the gas limit") {
+            // Map INTRINSIC_GAS_BELOW_FLOOR_GAS_COST to INTRINSIC_GAS_TOO_LOW
+            error_str.replace("INTRINSIC_GAS_BELOW_FLOOR_GAS_COST", "INTRINSIC_GAS_TOO_LOW")
+        } else {
+            error_str.to_string()
+        }
+    }
+
     /// Handles an error that occurred while inserting a block.
     ///
     /// If this is a validation error this will mark the block as invalid.
@@ -2300,8 +2315,12 @@ where
         self.emit_event(EngineApiEvent::BeaconConsensus(ConsensusEngineEvent::InvalidBlock(
             Box::new(block),
         )));
+
+        // Map the validation error string to the expected EEST format
+        let validation_error_str = Self::map_eest_validation_error(&validation_err.to_string());
+
         Ok(PayloadStatus::new(
-            PayloadStatusEnum::Invalid { validation_error: validation_err.to_string() },
+            PayloadStatusEnum::Invalid { validation_error: validation_error_str },
             latest_valid_hash,
         ))
     }
