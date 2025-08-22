@@ -14,4 +14,7 @@
 engine-withdrawals:
   # flaky
   - Withdrawals Fork on Block 1 - 8 Block Re-Org NewPayload (Paris) (reth)
-
+engine-api:
+  #flaky
+  - Transaction Re-Org, Re-Org Out (Paris) (reth)
+  - Transaction Re-Org, Re-Org to Different Block (Paris) (reth)
